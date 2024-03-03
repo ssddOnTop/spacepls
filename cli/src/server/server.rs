@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -10,13 +9,13 @@ use spacepls::blueprint::Blueprint;
 use spacepls::config::Config;
 
 pub struct Server {
-    config_module: Config,
+    config: Config,
     server_up_sender: Option<oneshot::Sender<()>>,
 }
 
 impl Server {
-    pub fn new(config_module: Config) -> Self {
-        Self { config_module, server_up_sender: None }
+    pub fn new(config: Config) -> Self {
+        Self { config, server_up_sender: None }
     }
 
     pub fn server_up_receiver(&mut self) -> oneshot::Receiver<()> {
@@ -29,7 +28,7 @@ impl Server {
 
     /// Starts the server in the current Runtime
     pub async fn start(self) -> Result<()> {
-        let blueprint = Blueprint::try_from(&self.config_module)?;
+        let blueprint = Blueprint::try_from(&self.config)?;
         let server_config = Arc::new(ServerConfig::new(blueprint.clone()));
 
         start_http_1(server_config, self.server_up_sender).await
@@ -38,7 +37,7 @@ impl Server {
     /// Starts the server in its own multithreaded Runtime
     pub async fn fork_start(self) -> Result<()> {
         let runtime = tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(self.config_module.deref().server.get_workers())
+            .worker_threads(self.config.server.get_workers())
             .enable_all()
             .build()?;
 

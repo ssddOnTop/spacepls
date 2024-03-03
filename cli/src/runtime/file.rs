@@ -1,7 +1,5 @@
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-
-use crate::cli::CLIError;
-use crate::FileIO;
+use spacepls::FileIO;
 
 #[derive(Clone)]
 pub struct NativeFileIO {}
@@ -16,7 +14,7 @@ impl NativeFileIO {
 impl FileIO for NativeFileIO {
     async fn write<'a>(&'a self, path: &'a str, content: &'a [u8]) -> anyhow::Result<()> {
         let mut file = tokio::fs::File::create(path).await?;
-        file.write_all(content).await.map_err(CLIError::from)?;
+        file.write_all(content).await?;
         log::info!("File write: {} ... ok", path);
         Ok(())
     }
@@ -25,8 +23,7 @@ impl FileIO for NativeFileIO {
         let mut file = tokio::fs::File::open(path).await?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)
-            .await
-            .map_err(CLIError::from)?;
+            .await?;
         log::info!("File read: {} ... ok", path);
         Ok(String::from_utf8(buffer)?)
     }

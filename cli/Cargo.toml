@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.36.0", features = ["rt","rt-multi-thread"] }
+tokio = { version = "1.36.0", features = ["rt","rt-multi-thread", "fs"] }
 hyper = {version = "1.2.0",features = ["server"]}
 http-body-util = "0.1.0"
 reqwest = "0.11.24"
@@ -24,3 +24,4 @@ webbrowser = { version = "0.8.12", features = ["hardened", "disable-wsl"] }
 
 [dev-dependencies]
 httpmock = "0.7.0"
+tempfile = "3.10.1"

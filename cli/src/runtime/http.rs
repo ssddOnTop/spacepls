@@ -7,19 +7,17 @@ use reqwest::Client;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use spacepls::blueprint::Upstream;
 use spacepls::HttpIO;
-use spacepls::response::Response;
+use spacepls::Response;
 
 #[derive(Clone)]
 pub struct NativeHttp {
     client: ClientWithMiddleware,
-    http2_only: bool,
 }
 
 impl Default for NativeHttp {
     fn default() -> Self {
         Self {
             client: ClientBuilder::new(Client::new()).build(),
-            http2_only: false,
         }
     }
 }
@@ -36,11 +34,6 @@ impl NativeHttp {
             .pool_idle_timeout(Some(Duration::from_secs(upstream.pool_idle_timeout)))
             .pool_max_idle_per_host(upstream.pool_max_idle_per_host)
             .user_agent(upstream.user_agent.clone());
-
-        // Add Http2 Prior Knowledge
-        if upstream.http2_only {
-            builder = builder.http2_prior_knowledge();
-        }
 
         // Add Http Proxy
         if let Some(ref proxy) = upstream.proxy {
@@ -59,16 +52,13 @@ impl NativeHttp {
                 options: HttpCacheOptions::default(),
             }))
         }
-        Self { client: client.build(), http2_only: upstream.http2_only }
+        Self { client: client.build()}
     }
 }
 
 #[async_trait::async_trait]
 impl HttpIO for NativeHttp {
     async fn execute(&self, mut request: reqwest::Request) -> Result<Response<Bytes>> {
-        if self.http2_only {
-            *request.version_mut() = reqwest::Version::HTTP_2;
-        }
         log::info!(
             "{} {} {:?}",
             request.method(),

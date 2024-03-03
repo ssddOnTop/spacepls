@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use derive_setters::Setters;
 
-use crate::config::{self, Batch};
+use crate::config::{self, Batch, Config};
 use anyhow::Result;
 
 #[derive(PartialEq, Eq, Clone, Debug, schemars::JsonSchema)]
@@ -23,10 +23,8 @@ pub struct Upstream {
     pub tcp_keep_alive: u64,
     pub user_agent: String,
     pub allowed_headers: BTreeSet<String>,
-    pub base_url: Option<String>,
     pub http_cache: bool,
     pub batch: Option<Batch>,
-    pub http2_only: bool,
 }
 
 impl Upstream {
@@ -42,16 +40,17 @@ impl Upstream {
 impl Default for Upstream {
     fn default() -> Self {
         // NOTE: Using unwrap because try_from default will never fail
-        Upstream::try_from(config::Upstream::default()).unwrap()
+        Upstream::try_from(&Config::default()).unwrap()
     }
 }
 
-impl TryFrom<crate::config::Upstream> for Upstream {
+impl TryFrom<&Config> for Upstream {
     type Error = anyhow::Error;
 
-    fn try_from(config_upstream: config::Upstream) -> Result<Self, Self::Error> {
-        let batch = get_batch(&config_upstream);
-        let proxy = get_proxy(&config_upstream);
+    fn try_from(config: &Config) -> Result<Self, Self::Error> {
+        let config_upstream = &config.upstream;
+        let batch = get_batch(config_upstream);
+        let proxy = get_proxy(config_upstream);
         let upstream = Upstream {
             pool_idle_timeout: (config_upstream).get_pool_idle_timeout(),
             pool_max_idle_per_host: (config_upstream).get_pool_max_idle_per_host(),
@@ -64,10 +63,8 @@ impl TryFrom<crate::config::Upstream> for Upstream {
             tcp_keep_alive: config_upstream.get_tcp_keep_alive(),
             user_agent: config_upstream.get_user_agent(),
             allowed_headers: config_upstream.get_allowed_headers(),
-            base_url,
             http_cache: config_upstream.get_enable_http_cache(),
             batch,
-            http2_only: config_upstream.get_http_2_only(),
         };
 
         Ok(upstream)

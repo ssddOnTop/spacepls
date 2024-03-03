@@ -5,14 +5,11 @@ mod server_config;
 fn log_launch_and_open_browser(sc: &server_config::ServerConfig) {
     let addr = sc.addr().to_string();
     log::info!(
-        "🚀 SpcaePls launched at [{}] over {}",
+        "🚀 SpcaePls launched at [{}] over HTTP/1",
         addr,
-        sc.http_version()
     );
-    if sc.graphiql() {
-        let url = sc.graphiql_url();
-        log::info!("🌍 Playground: {}", url);
+    let url = sc.graphiql_url();
+    log::info!("🌍 Playground: {}", url);
 
-        let _ = webbrowser::open(url.as_str());
-    }
+    let _ = webbrowser::open(url.as_str());
 }

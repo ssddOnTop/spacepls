@@ -13,6 +13,7 @@ mod http;
 pub use target_runtime::*;
 pub use request::*;
 pub use response::*;
+pub use app_context::*;
 
 #[async_trait::async_trait]
 pub trait HttpIO: Sync + Send + 'static {

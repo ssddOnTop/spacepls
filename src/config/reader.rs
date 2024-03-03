@@ -22,7 +22,7 @@ impl ConfigReader {
 
 
     /// Reads the config file and returns serialized config
-    pub async fn read<T: ToString>(&self, files: &[T]) -> anyhow::Result<Config> {
+    pub async fn read<T: ToString>(&self, files: &T) -> anyhow::Result<Config> {
         let file = self.read_file(files).await?;
 
         let config = Self::resolve(
@@ -33,7 +33,7 @@ impl ConfigReader {
         Ok(config)
     }
     /// Reads a file from the filesystem or from an HTTP URL
-    async fn read_file<T: ToString>(&self, file: T) -> anyhow::Result<FileRead> {
+    async fn read_file<T: ToString>(&self, file: &T) -> anyhow::Result<FileRead> {
         // Is an HTTP URL
         let content = if let Ok(url) = Url::parse(&file.to_string()) {
             let response = self

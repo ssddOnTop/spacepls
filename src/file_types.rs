@@ -201,7 +201,7 @@ impl Display for Docs {
             Docs::PDF => f.write_str("pdf"),
             Docs::HTML => f.write_str("html"),
             Docs::HTM => f.write_str("htm"),
-            _ => "Any",
+            Docs::Any => f.write_str("any")
         }
     }
 }

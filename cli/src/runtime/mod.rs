@@ -1,4 +1,3 @@
-mod env;
 mod file;
 mod http;
 

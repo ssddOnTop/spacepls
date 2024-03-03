@@ -4,7 +4,7 @@ use crate::blueprint::server::Server;
 use crate::config::Config;
 use super::Upstream;
 
-#[derive(Clone, Debug, Default, Setters)]
+#[derive(Clone, Debug, Setters)]
 pub struct Blueprint {
     pub server: Server,
     pub upstream: Upstream,

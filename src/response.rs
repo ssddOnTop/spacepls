@@ -1,4 +1,5 @@
-use anyhow::Result;
+use std::str::FromStr;
+use anyhow::{Context, Result};
 use derive_setters::Setters;
 use http_body_util::Full;
 use bytes::Bytes;
@@ -43,8 +44,8 @@ impl Response<Bytes> {
     }
     pub fn into_hyper(self) -> Result<hyper::Response<Full<Bytes>>> {
         let mut builder = hyper::Response::builder().status(hyper::StatusCode::from_u16(self.status.as_u16())?);
-        for (key, value) in self.headers.iter() {
-            builder = builder.header(hyper::header::HeaderName::from_static(key.as_str())?, hyper::header::HeaderValue::from_static(value.to_str()?));
+        for (key, value) in self.headers {
+            builder = builder.header(hyper::header::HeaderName::from_str(key.context("Invalid header key")?.as_str().to_string().as_str())?, hyper::header::HeaderValue::from_str(value.to_str()?)?);
         }
         Ok(builder.body(Full::new(self.body))?)
     }
