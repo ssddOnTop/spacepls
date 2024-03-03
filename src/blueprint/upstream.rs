@@ -1,0 +1,95 @@
+use std::collections::BTreeSet;
+
+use derive_setters::Setters;
+
+use crate::config::{self, Batch};
+use anyhow::Result;
+
+#[derive(PartialEq, Eq, Clone, Debug, schemars::JsonSchema)]
+pub struct Proxy {
+    pub url: String,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug, Setters, schemars::JsonSchema)]
+pub struct Upstream {
+    pub pool_idle_timeout: u64,
+    pub pool_max_idle_per_host: usize,
+    pub keep_alive_interval: u64,
+    pub keep_alive_timeout: u64,
+    pub keep_alive_while_idle: bool,
+    pub proxy: Option<Proxy>,
+    pub connect_timeout: u64,
+    pub timeout: u64,
+    pub tcp_keep_alive: u64,
+    pub user_agent: String,
+    pub allowed_headers: BTreeSet<String>,
+    pub base_url: Option<String>,
+    pub http_cache: bool,
+    pub batch: Option<Batch>,
+    pub http2_only: bool,
+}
+
+impl Upstream {
+    pub fn is_batching_enabled(&self) -> bool {
+        if let Some(batch) = self.batch.as_ref() {
+            batch.delay >= 1 || batch.max_size >= 1
+        } else {
+            false
+        }
+    }
+}
+
+impl Default for Upstream {
+    fn default() -> Self {
+        // NOTE: Using unwrap because try_from default will never fail
+        Upstream::try_from(config::Upstream::default()).unwrap()
+    }
+}
+
+impl TryFrom<crate::config::Upstream> for Upstream {
+    type Error = anyhow::Error;
+
+    fn try_from(config_upstream: config::Upstream) -> Result<Self, Self::Error> {
+        let batch = get_batch(&config_upstream);
+        let proxy = get_proxy(&config_upstream);
+        let upstream = Upstream {
+            pool_idle_timeout: (config_upstream).get_pool_idle_timeout(),
+            pool_max_idle_per_host: (config_upstream).get_pool_max_idle_per_host(),
+            keep_alive_interval: (config_upstream).get_keep_alive_interval(),
+            keep_alive_timeout: (config_upstream).get_keep_alive_timeout(),
+            keep_alive_while_idle: (config_upstream).get_keep_alive_while_idle(),
+            proxy,
+            connect_timeout: config_upstream.get_connect_timeout(),
+            timeout: config_upstream.get_timeout(),
+            tcp_keep_alive: config_upstream.get_tcp_keep_alive(),
+            user_agent: config_upstream.get_user_agent(),
+            allowed_headers: config_upstream.get_allowed_headers(),
+            base_url,
+            http_cache: config_upstream.get_enable_http_cache(),
+            batch,
+            http2_only: config_upstream.get_http_2_only(),
+        };
+
+        Ok(upstream)
+    }
+}
+
+fn get_batch(upstream: &config::Upstream) -> Option<Batch> {
+    if let Some(batch) = upstream.batch.as_ref() {
+        Some(Batch {
+            max_size: upstream.get_max_size(),
+            delay: upstream.get_delay(),
+            headers: batch.headers.clone(),
+        })
+    } else {
+        None
+    }
+}
+
+fn get_proxy(upstream: &config::Upstream) -> Option<Proxy> {
+    if let Some(ref proxy) = upstream.proxy {
+        Some(Proxy { url: proxy.url.clone() })
+    } else {
+       None
+    }
+}
