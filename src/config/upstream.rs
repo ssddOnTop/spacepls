@@ -5,23 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use super::is_default;
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug, Setters, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase", default)]
-pub struct Batch {
-    pub delay: usize,
-    pub headers: BTreeSet<String>,
-    pub max_size: usize,
-}
-impl Default for Batch {
-    fn default() -> Self {
-        Batch {
-            max_size: 100,
-            delay: 0,
-            headers: BTreeSet::new(),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug, schemars::JsonSchema)]
 pub struct Proxy {
     pub url: String,
@@ -36,10 +19,6 @@ pub struct Upstream {
     #[serde(default, skip_serializing_if = "is_default")]
     /// `allowedHeaders` defines the HTTP headers allowed to be forwarded to upstream services. If not set, no headers are forwarded, enhancing security but possibly limiting data flow.
     pub allowed_headers: Option<BTreeSet<String>>,
-
-    #[serde(default, skip_serializing_if = "is_default")]
-    /// An object that specifies the batch settings, including `maxSize` (the maximum size of the batch), `delay` (the delay in milliseconds between each batch), and `headers` (an array of HTTP headers to be included in the batch).
-    pub batch: Option<Batch>,
 
     #[serde(default, skip_serializing_if = "is_default")]
     /// The time in seconds that the connection will wait for a response before timing out.
@@ -122,13 +101,6 @@ impl Upstream {
     pub fn get_allowed_headers(&self) -> BTreeSet<String> {
         self.allowed_headers.clone().unwrap_or_default()
     }
-    pub fn get_delay(&self) -> usize {
-        self.batch.clone().unwrap_or_default().delay
-    }
-
-    pub fn get_max_size(&self) -> usize {
-        self.batch.clone().unwrap_or_default().max_size
-    }
 
     // TODO: add unit tests for merge
     pub fn merge_right(mut self, other: Self) -> Self {
@@ -152,14 +124,6 @@ impl Upstream {
         self.timeout = other.timeout.or(self.timeout);
         self.user_agent = other.user_agent.or(self.user_agent);
 
-        if let Some(other) = other.batch {
-            let mut batch = self.batch.unwrap_or_default();
-            batch.max_size = other.max_size;
-            batch.delay = other.delay;
-            batch.headers.extend(other.headers);
-
-            self.batch = Some(batch);
-        }
         self
     }
 }

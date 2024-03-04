@@ -34,6 +34,12 @@ run_prettier() {
     return $?
 }
 
+run_autogen_schema() {
+    MODE=$1
+    cargo run -p autogen $MODE
+    return $?
+}
+
 # Extract the mode from the argument
 if [[ $1 == "--mode="* ]]; then
     MODE=${1#--mode=}
@@ -45,6 +51,9 @@ fi
 # Run commands based on mode
 case $MODE in
     check|fix)
+        run_autogen_schema $MODE
+        AUTOGEN_SCHEMA_EXIT_CODE=$?
+
         # Commands that uses nightly toolchains are run from `.nightly` directory
         # to read the nightly version from `rust-toolchain.toml` file
         pushd .nightly
@@ -64,6 +73,6 @@ case $MODE in
 esac
 
 # If any command failed, exit with a non-zero status code
-if [ $FMT_EXIT_CODE -ne 0 ] || [ $CLIPPY_EXIT_CODE -ne 0 ] || [ $PRETTIER_EXIT_CODE -ne 0 ]; then
+if [ $FMT_EXIT_CODE -ne 0 ] || [ $CLIPPY_EXIT_CODE -ne 0 ] || [ $PRETTIER_EXIT_CODE -ne 0 ] || [ $AUTOGEN_SCHEMA_EXIT_CODE -ne 0 ]; then
     exit 1
 fi

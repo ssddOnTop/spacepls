@@ -1,4 +1,9 @@
 {
+    "$schema": "../generated/.spacepls.schema.json",
+    "upstream": {
+        "connectTimeout": 1000,
+        "httpCache": true
+    },
     "server": {
         "hostname": "localhost",
         "port": 19194,

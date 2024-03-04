@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use derive_setters::Setters;
 
-use crate::config::{self, Batch, Config};
+use crate::config::{self, Config};
 use anyhow::Result;
 
 #[derive(PartialEq, Eq, Clone, Debug, schemars::JsonSchema)]
@@ -24,17 +24,6 @@ pub struct Upstream {
     pub user_agent: String,
     pub allowed_headers: BTreeSet<String>,
     pub http_cache: bool,
-    pub batch: Option<Batch>,
-}
-
-impl Upstream {
-    pub fn is_batching_enabled(&self) -> bool {
-        if let Some(batch) = self.batch.as_ref() {
-            batch.delay >= 1 || batch.max_size >= 1
-        } else {
-            false
-        }
-    }
 }
 
 impl Default for Upstream {
@@ -49,7 +38,6 @@ impl TryFrom<&Config> for Upstream {
 
     fn try_from(config: &Config) -> Result<Self, Self::Error> {
         let config_upstream = &config.upstream;
-        let batch = get_batch(config_upstream);
         let proxy = get_proxy(config_upstream);
         let upstream = Upstream {
             pool_idle_timeout: (config_upstream).get_pool_idle_timeout(),
@@ -64,19 +52,10 @@ impl TryFrom<&Config> for Upstream {
             user_agent: config_upstream.get_user_agent(),
             allowed_headers: config_upstream.get_allowed_headers(),
             http_cache: config_upstream.get_enable_http_cache(),
-            batch,
         };
 
         Ok(upstream)
     }
-}
-
-fn get_batch(upstream: &config::Upstream) -> Option<Batch> {
-    upstream.batch.as_ref().map(|batch| Batch {
-        max_size: upstream.get_max_size(),
-        delay: upstream.get_delay(),
-        headers: batch.headers.clone(),
-    })
 }
 
 fn get_proxy(upstream: &config::Upstream) -> Option<Proxy> {

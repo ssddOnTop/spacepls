@@ -1,0 +1,147 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "Proxy": {
+            "properties": {
+                "url": {
+                    "type": "string"
+                }
+            },
+            "required": ["url"],
+            "type": "object"
+        },
+        "Server": {
+            "description": "`Server` is the configuration for the SpacePls server.",
+            "properties": {
+                "hostname": {
+                    "description": "`hostname` sets the server hostname.",
+                    "type": ["string", "null"]
+                },
+                "port": {
+                    "description": "`port` sets the SpacePls running port. @default `8000`.",
+                    "format": "uint16",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                },
+                "workers": {
+                    "description": "`workers` set the number of worker threads. @default is one thread.",
+                    "format": "uint",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                }
+            },
+            "type": "object"
+        },
+        "Upstream": {
+            "description": "The `upstream` directive allows you to control various aspects of the upstream server connection. This includes settings like connection timeouts, keep-alive intervals, and more. If not specified, default values are used.",
+            "properties": {
+                "allowedHeaders": {
+                    "description": "`allowedHeaders` defines the HTTP headers allowed to be forwarded to upstream services. If not set, no headers are forwarded, enhancing security but possibly limiting data flow.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": ["array", "null"],
+                    "uniqueItems": true
+                },
+                "connectTimeout": {
+                    "description": "The time in seconds that the connection will wait for a response before timing out.",
+                    "format": "uint64",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                },
+                "httpCache": {
+                    "description": "Activating this enables SpacePls's HTTP caching, adhering to the [HTTP Caching RFC](https://tools.ietf.org/html/rfc7234), to enhance performance by minimizing redundant data fetches. Defaults to `false` if unspecified.",
+                    "type": ["boolean", "null"]
+                },
+                "keepAliveInterval": {
+                    "description": "The time in seconds between each keep-alive message sent to maintain the connection.",
+                    "format": "uint64",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                },
+                "keepAliveTimeout": {
+                    "description": "The time in seconds that the connection will wait for a keep-alive message before closing.",
+                    "format": "uint64",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                },
+                "keepAliveWhileIdle": {
+                    "description": "A boolean value that determines whether keep-alive messages should be sent while the connection is idle.",
+                    "type": ["boolean", "null"]
+                },
+                "poolIdleTimeout": {
+                    "description": "The time in seconds that the connection pool will wait before closing idle connections.",
+                    "format": "uint64",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                },
+                "poolMaxIdlePerHost": {
+                    "description": "The maximum number of idle connections that will be maintained per host.",
+                    "format": "uint",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                },
+                "proxy": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Proxy"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "The `proxy` setting defines an intermediary server through which the upstream requests will be routed before reaching their intended endpoint. By specifying a proxy URL, you introduce an additional layer, enabling custom routing and security policies."
+                },
+                "tcpKeepAlive": {
+                    "description": "The time in seconds between each TCP keep-alive message sent to maintain the connection.",
+                    "format": "uint64",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                },
+                "timeout": {
+                    "description": "The maximum time in seconds that the connection will wait for a response.",
+                    "format": "uint64",
+                    "minimum": 0.0,
+                    "type": ["integer", "null"]
+                },
+                "userAgent": {
+                    "description": "The User-Agent header value to be used in HTTP requests. @default `SpacePls/1.0`",
+                    "type": ["string", "null"]
+                }
+            },
+            "type": "object"
+        }
+    },
+    "properties": {
+        "dir_path": {
+            "default": null,
+            "description": "The directory path to store files.",
+            "type": ["string", "null"]
+        },
+        "password": {
+            "default": null,
+            "description": "Password",
+            "type": ["string", "null"]
+        },
+        "server": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Server"
+                }
+            ],
+            "default": {},
+            "description": "Describes how SpacePls server should behave."
+        },
+        "upstream": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Upstream"
+                }
+            ],
+            "default": {},
+            "description": "Dictates how SpacePls should handle upstream requests/responses. Tuning upstream can improve performance and reliability for connections."
+        }
+    },
+    "title": "Config",
+    "type": "object"
+}
