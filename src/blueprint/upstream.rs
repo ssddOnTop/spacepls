@@ -72,21 +72,13 @@ impl TryFrom<&Config> for Upstream {
 }
 
 fn get_batch(upstream: &config::Upstream) -> Option<Batch> {
-    if let Some(batch) = upstream.batch.as_ref() {
-        Some(Batch {
-            max_size: upstream.get_max_size(),
-            delay: upstream.get_delay(),
-            headers: batch.headers.clone(),
-        })
-    } else {
-        None
-    }
+    upstream.batch.as_ref().map(|batch| Batch {
+        max_size: upstream.get_max_size(),
+        delay: upstream.get_delay(),
+        headers: batch.headers.clone(),
+    })
 }
 
 fn get_proxy(upstream: &config::Upstream) -> Option<Proxy> {
-    if let Some(ref proxy) = upstream.proxy {
-        Some(Proxy { url: proxy.url.clone() })
-    } else {
-       None
-    }
+    upstream.proxy.as_ref().map(|proxy| Proxy { url: proxy.url.clone() })
 }

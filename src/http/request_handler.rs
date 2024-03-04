@@ -5,10 +5,7 @@ use http_body_util::Full;
 use hyper::{Method, Response};
 use crate::{AppContext, Request};
 
-const SUPPORTED_METHOD: &[&str] = &["GET", "POST"];
-
-
-pub async fn handle_req(req: Request<Bytes>, app_ctx: Arc<AppContext>) -> Result<Response<Full<Bytes>>> {
+pub async fn handle_request(req: Request<Bytes>, app_ctx: Arc<AppContext>) -> Result<Response<Full<Bytes>>> {
     match req.method {
         Method::POST => handle_post(req, app_ctx).await,
         Method::GET => handle_get(req, app_ctx).await,

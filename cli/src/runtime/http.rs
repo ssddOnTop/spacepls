@@ -58,7 +58,7 @@ impl NativeHttp {
 
 #[async_trait::async_trait]
 impl HttpIO for NativeHttp {
-    async fn execute(&self, mut request: reqwest::Request) -> Result<Response<Bytes>> {
+    async fn execute(&self, request: reqwest::Request) -> Result<Response<Bytes>> {
         log::info!(
             "{} {} {:?}",
             request.method(),
@@ -75,7 +75,6 @@ impl HttpIO for NativeHttp {
 #[cfg(test)]
 mod tests {
     use reqwest::Method;
-    use tokio;
 
     use super::*;
 

@@ -8,7 +8,7 @@ pub mod file_types;
 pub mod config;
 pub mod blueprint;
 mod app_context;
-mod http;
+pub mod http;
 
 pub use target_runtime::*;
 pub use request::*;

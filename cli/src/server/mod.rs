@@ -8,7 +8,7 @@ fn log_launch_and_open_browser(sc: &server_config::ServerConfig) {
         "🚀 SpcaePls launched at [{}] over HTTP/1",
         addr,
     );
-    let url = sc.graphiql_url();
+    let url = sc.playground_url();
     log::info!("🌍 Playground: {}", url);
 
     let _ = webbrowser::open(url.as_str());

@@ -1,4 +1,4 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
 use spacepls::AppContext;
 use spacepls::blueprint::Blueprint;
@@ -10,7 +10,7 @@ pub struct ServerConfig {
 }
 
 impl ServerConfig {
-    pub fn graphiql_url(&self) -> String {
+    pub fn playground_url(&self) -> String {
         self.addr().to_string()
     }
 }
