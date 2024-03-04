@@ -1,6 +1,6 @@
+pub use http1::*;
 pub use server::*;
 pub use server_config::*;
-pub use http1::*;
 mod http1;
 mod server;
 mod server_config;

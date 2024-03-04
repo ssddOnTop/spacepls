@@ -1,9 +1,9 @@
 {
-  "server": {
-    "hostname": "localhost",
-    "port": 19194,
-    "workers": 2
-  },
-  "dir_path": ".",
-  "password": "$Xme-Ef9r[@EsqF"
+    "server": {
+        "hostname": "localhost",
+        "port": 19194,
+        "workers": 2
+    },
+    "dir_path": ".",
+    "password": "$Xme-Ef9r[@EsqF"
 }

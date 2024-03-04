@@ -38,9 +38,7 @@ async fn run(
                             io,
                             service_fn(move |req: Request<Incoming>| {
                                 let state = sc.clone();
-                                async move {
-                                    handle_request(req, state.app_ctx.clone()).await
-                                }
+                                async move { handle_request(req, state.app_ctx.clone()).await }
                             }),
                         )
                         .await;

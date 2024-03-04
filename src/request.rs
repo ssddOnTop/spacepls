@@ -44,14 +44,13 @@ impl Request<Bytes> {
         let headers = req.headers().clone();
 
         let body = if method == hyper::Method::POST {
-            req
-                .into_body()
+            req.into_body()
                 .frame()
                 .await
                 .context("unable to extract frame")??
                 .into_data()
                 .map_err(|e| anyhow::anyhow!("{:?}", e))?
-        }else {
+        } else {
             Bytes::new()
         };
 

@@ -1,7 +1,7 @@
+use crate::command::{Cli, Command};
 use clap::Parser;
 use spacepls::blueprint::Upstream;
 use spacepls::config::reader::ConfigReader;
-use crate::command::{Cli, Command};
 
 pub async fn run() -> anyhow::Result<()> {
     logger_init();
