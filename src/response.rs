@@ -1,8 +1,8 @@
-use std::str::FromStr;
 use anyhow::{Context, Result};
+use bytes::Bytes;
 use derive_setters::Setters;
 use http_body_util::Full;
-use bytes::Bytes;
+use std::str::FromStr;
 
 #[derive(Clone, Debug, Default, Setters)]
 pub struct Response<Body: Default + Clone> {
@@ -16,7 +16,11 @@ impl Response<Bytes> {
         let status = resp.status();
         let headers = resp.headers().to_owned();
         let body = resp.bytes().await?;
-        Ok(Response { status, headers, body })
+        Ok(Response {
+            status,
+            headers,
+            body,
+        })
     }
     pub fn empty() -> Self {
         Response {
@@ -43,9 +47,18 @@ impl Response<Bytes> {
         })
     }
     pub fn into_hyper(self) -> Result<hyper::Response<Full<Bytes>>> {
-        let mut builder = hyper::Response::builder().status(hyper::StatusCode::from_u16(self.status.as_u16())?);
+        let mut builder =
+            hyper::Response::builder().status(hyper::StatusCode::from_u16(self.status.as_u16())?);
         for (key, value) in self.headers {
-            builder = builder.header(hyper::header::HeaderName::from_str(key.context("Invalid header key")?.as_str().to_string().as_str())?, hyper::header::HeaderValue::from_str(value.to_str()?)?);
+            builder = builder.header(
+                hyper::header::HeaderName::from_str(
+                    key.context("Invalid header key")?
+                        .as_str()
+                        .to_string()
+                        .as_str(),
+                )?,
+                hyper::header::HeaderValue::from_str(value.to_str()?)?,
+            );
         }
         Ok(builder.body(Full::new(self.body))?)
     }

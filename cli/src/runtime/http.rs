@@ -52,7 +52,9 @@ impl NativeHttp {
                 options: HttpCacheOptions::default(),
             }))
         }
-        Self { client: client.build()}
+        Self {
+            client: client.build(),
+        }
     }
 }
 

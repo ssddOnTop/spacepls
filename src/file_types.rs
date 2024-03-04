@@ -1,6 +1,5 @@
 use std::fmt::{Display, Formatter, Write};
 
-
 /// High-level Types of files that can be uploaded and queried.
 pub enum Types {
     Any,
@@ -201,7 +200,7 @@ impl Display for Docs {
             Docs::PDF => f.write_str("pdf"),
             Docs::HTML => f.write_str("html"),
             Docs::HTM => f.write_str("htm"),
-            Docs::Any => f.write_str("any")
+            Docs::Any => f.write_str("any"),
         }
     }
 }

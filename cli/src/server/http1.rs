@@ -1,12 +1,12 @@
-use std::sync::Arc;
+use crate::server::server_config::ServerConfig;
 use http_body_util::{BodyExt, Full};
 use hyper::body::Incoming;
-use hyper::Request;
 use hyper::service::service_fn;
+use hyper::Request;
+use spacepls::http::handle_request;
+use std::sync::Arc;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
-use spacepls::http::handle_request;
-use crate::server::server_config::ServerConfig;
 
 pub async fn start_http_1(
     sc: Arc<ServerConfig>,

@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use crate::{FileIO, HttpIO};
+use std::sync::Arc;
 
 #[derive(Clone)]
 /// The TargetRuntime struct unifies the available runtime-specific

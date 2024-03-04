@@ -15,7 +15,10 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Self {
-        Self { config, server_up_sender: None }
+        Self {
+            config,
+            server_up_sender: None,
+        }
     }
 
     pub fn server_up_receiver(&mut self) -> oneshot::Receiver<()> {

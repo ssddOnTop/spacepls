@@ -80,5 +80,7 @@ fn get_batch(upstream: &config::Upstream) -> Option<Batch> {
 }
 
 fn get_proxy(upstream: &config::Upstream) -> Option<Proxy> {
-    upstream.proxy.as_ref().map(|proxy| Proxy { url: proxy.url.clone() })
+    upstream.proxy.as_ref().map(|proxy| Proxy {
+        url: proxy.url.clone(),
+    })
 }

@@ -14,7 +14,11 @@ pub struct Batch {
 }
 impl Default for Batch {
     fn default() -> Self {
-        Batch { max_size: 100, delay: 0, headers: BTreeSet::new() }
+        Batch {
+            max_size: 100,
+            delay: 0,
+            headers: BTreeSet::new(),
+        }
     }
 }
 

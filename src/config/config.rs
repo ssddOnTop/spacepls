@@ -1,10 +1,10 @@
-use derive_setters::Setters;
-use serde::{Deserialize, Serialize};
 use crate::config::server::Server;
 use crate::config::Upstream;
+use derive_setters::Setters;
+use serde::{Deserialize, Serialize};
 
 #[derive(
-Serialize, Deserialize, Clone, Debug, Default, Setters, PartialEq, Eq, schemars::JsonSchema,
+    Serialize, Deserialize, Clone, Debug, Default, Setters, PartialEq, Eq, schemars::JsonSchema,
 )]
 pub struct Config {
     ///
@@ -28,7 +28,6 @@ pub struct Config {
 }
 
 impl Config {
-
     /// Merge configs, preferring the right side.
     pub fn merge_right(self, other: &Self) -> Self {
         let server = self.server.merge_right(other.server.clone());
@@ -36,7 +35,12 @@ impl Config {
         let dir_path = other.clone().dir_path.or(self.dir_path);
         let password = other.clone().password.or(self.password);
 
-        Self { server, upstream, dir_path, password }
+        Self {
+            server,
+            upstream,
+            dir_path,
+            password,
+        }
     }
 
     /// Serialize Config.

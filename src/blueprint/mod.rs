@@ -1,7 +1,7 @@
 pub use blueprint::*;
-pub use upstream::*;
 pub use server::*;
+pub use upstream::*;
 
-mod server;
 mod blueprint;
+mod server;
 mod upstream;

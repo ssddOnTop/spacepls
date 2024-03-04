@@ -1,9 +1,9 @@
-use std::str::FromStr;
 use anyhow::Context;
+use anyhow::Result;
 use bytes::Bytes;
 use derive_setters::Setters;
 use http_body_util::{BodyExt, Full};
-use anyhow::Result;
+use std::str::FromStr;
 
 #[derive(Clone, Debug, Setters)]
 pub struct Request<Body: Default + Clone> {
@@ -24,14 +24,17 @@ impl<T: Default + Clone> Default for Request<T> {
 
 impl Request<Bytes> {
     pub fn from_reqwest(req: reqwest::Request) -> Result<Self> {
-        Ok(
-            Self {
-                url: req.url().clone(),
-                method: to_hyper_method(req.method())?,
-                headers: to_hyper_header(req.headers())?,
-                body: req.body().context("No body found in request.")?.as_bytes().map(|v| Bytes::from(v.to_vec())).context("Unable to convert body to bytes.")?,
-            }
-        )
+        Ok(Self {
+            url: req.url().clone(),
+            method: to_hyper_method(req.method())?,
+            headers: to_hyper_header(req.headers())?,
+            body: req
+                .body()
+                .context("No body found in request.")?
+                .as_bytes()
+                .map(|v| Bytes::from(v.to_vec()))
+                .context("Unable to convert body to bytes.")?,
+        })
     }
     pub async fn from_hyper(req: hyper::Request<Full<Bytes>>) -> Result<Self> {
         let url = req.uri().to_string().parse()?;
@@ -45,14 +48,12 @@ impl Request<Bytes> {
             .into_data()
             .map_err(|e| anyhow::anyhow!("{:?}", e))?;
 
-        Ok(
-            Self {
-                url,
-                method,
-                headers,
-                body,
-            }
-        )
+        Ok(Self {
+            url,
+            method,
+            headers,
+            body,
+        })
     }
 }
 
@@ -63,7 +64,10 @@ fn to_hyper_method(method: &reqwest::Method) -> Result<hyper::Method> {
 fn to_hyper_header(reqw_map: &reqwest::header::HeaderMap) -> Result<hyper::header::HeaderMap> {
     let mut header_map = hyper::header::HeaderMap::new();
     for (k, v) in reqw_map {
-        header_map.insert(hyper::header::HeaderName::from_str(k.as_str())?, hyper::header::HeaderValue::from_bytes(v.as_bytes())?);
+        header_map.insert(
+            hyper::header::HeaderName::from_str(k.as_str())?,
+            hyper::header::HeaderValue::from_bytes(v.as_bytes())?,
+        );
     }
     Ok(header_map)
 }

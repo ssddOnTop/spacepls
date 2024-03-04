@@ -1,5 +1,5 @@
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use spacepls::FileIO;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[derive(Clone)]
 pub struct NativeFileIO {}
@@ -22,8 +22,7 @@ impl FileIO for NativeFileIO {
     async fn read<'a>(&'a self, path: &'a str) -> anyhow::Result<String> {
         let mut file = tokio::fs::File::open(path).await?;
         let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer)
-            .await?;
+        file.read_to_end(&mut buffer).await?;
         log::info!("File read: {} ... ok", path);
         Ok(String::from_utf8(buffer)?)
     }

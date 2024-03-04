@@ -1,7 +1,7 @@
+use spacepls::blueprint::Blueprint;
+use spacepls::AppContext;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use spacepls::AppContext;
-use spacepls::blueprint::Blueprint;
 
 use crate::runtime;
 
@@ -26,6 +26,10 @@ impl ServerConfig {
     }
 
     pub fn addr(&self) -> SocketAddr {
-        (self.app_ctx.blueprint.server.hostname, self.app_ctx.blueprint.server.port).into()
+        (
+            self.app_ctx.blueprint.server.hostname,
+            self.app_ctx.blueprint.server.port,
+        )
+            .into()
     }
 }

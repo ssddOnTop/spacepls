@@ -3,8 +3,8 @@ mod http;
 
 use std::sync::Arc;
 
-use spacepls::TargetRuntime;
 use spacepls::blueprint;
+use spacepls::TargetRuntime;
 
 // Provides access to http in native rust environment
 pub fn init(upstream: &blueprint::Upstream) -> TargetRuntime {

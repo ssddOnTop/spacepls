@@ -1,7 +1,7 @@
-use std::net::IpAddr;
-use derive_setters::Setters;
 use crate::config::Config;
 use anyhow::Result;
+use derive_setters::Setters;
+use std::net::IpAddr;
 
 #[derive(Clone, Debug, Setters)]
 pub struct Server {
@@ -18,13 +18,11 @@ impl TryFrom<&Config> for Server {
         let hostname = validate_hostname(config_server.get_hostname())?;
         let port = config_server.get_port();
         let workers = config_server.get_workers();
-        Ok(
-            Self {
-                hostname,
-                port,
-                workers,
-            }
-        )
+        Ok(Self {
+            hostname,
+            port,
+            workers,
+        })
     }
 }
 

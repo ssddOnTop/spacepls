@@ -1,7 +1,7 @@
-use std::path::Path;
-use reqwest::Url;
 use crate::config::Config;
 use crate::TargetRuntime;
+use reqwest::Url;
+use std::path::Path;
 
 /// Reads the configuration from a file or from an HTTP URL and resolves all linked extensions to create a ConfigModule.
 pub struct ConfigReader {
@@ -20,7 +20,6 @@ impl ConfigReader {
         Self { runtime }
     }
 
-
     /// Reads the config file and returns serialized config
     pub async fn read<T: ToString>(&self, files: &T) -> anyhow::Result<Config> {
         let file = self.read_file(files).await?;
@@ -28,7 +27,8 @@ impl ConfigReader {
         let config = Self::resolve(
             Config::from_json(&file.content)?,
             Path::new(&file.path).parent(),
-        ).await;
+        )
+        .await;
 
         Ok(config)
     }
@@ -49,12 +49,12 @@ impl ConfigReader {
             self.runtime.file.read(&file.to_string()).await?
         };
 
-        Ok(FileRead { content, path: file.to_string() })
+        Ok(FileRead {
+            content,
+            path: file.to_string(),
+        })
     }
-    async fn resolve(
-        mut config: Config,
-        parent_dir: Option<&Path>,
-    ) -> Config {
+    async fn resolve(mut config: Config, parent_dir: Option<&Path>) -> Config {
         let dir = config.dir_path.unwrap_or("spacepls".to_string());
         let dir = Self::resolve_path(&dir, parent_dir);
         config.dir_path = Some(dir);

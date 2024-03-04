@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use super::is_default;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -18,7 +18,9 @@ pub struct Server {
 
 impl Server {
     pub fn get_hostname(&self) -> String {
-        self.hostname.clone().unwrap_or_else(|| "127.0.0.1".to_string())
+        self.hostname
+            .clone()
+            .unwrap_or_else(|| "127.0.0.1".to_string())
     }
     pub fn get_port(&self) -> u16 {
         self.port.unwrap_or(19194)
