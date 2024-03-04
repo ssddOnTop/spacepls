@@ -1,6 +1,21 @@
-pub fn run() -> anyhow::Result<()> {
-    logger_init();
+use clap::Parser;
+use spacepls::blueprint::Upstream;
+use spacepls::config::reader::ConfigReader;
+use crate::command::{Cli, Command};
 
+pub async fn run() -> anyhow::Result<()> {
+    logger_init();
+    let cli = Cli::parse();
+    let runtime = crate::runtime::init(&Upstream::default());
+    let config_reader = ConfigReader::init(runtime.clone());
+    match cli.command {
+        Command::Start { config_path } => {
+            let config = config_reader.read(&config_path).await?;
+            let server = crate::server::Server::new(config);
+            server.fork_start().await?;
+        }
+        Command::Init { .. } => {}
+    }
     Ok(())
 }
 

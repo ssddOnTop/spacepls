@@ -1,5 +1,4 @@
 use crate::server::server_config::ServerConfig;
-use http_body_util::{BodyExt, Full};
 use hyper::body::Incoming;
 use hyper::service::service_fn;
 use hyper::Request;
@@ -40,10 +39,6 @@ async fn run(
                             service_fn(move |req: Request<Incoming>| {
                                 let state = sc.clone();
                                 async move {
-                                    let (part, body) = req.into_parts();
-                                    let body = body.collect().await?.to_bytes();
-                                    let req = Request::from_parts(part, Full::new(body));
-                                    let req = spacepls::Request::from_hyper(req).await?;
                                     handle_request(req, state.app_ctx.clone()).await
                                 }
                             }),

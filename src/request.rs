@@ -42,13 +42,18 @@ impl Request<Bytes> {
         let url = req.uri().to_string().parse()?;
         let method = req.method().clone();
         let headers = req.headers().clone();
-        let body = req
-            .into_body()
-            .frame()
-            .await
-            .context("unable to extract frame")??
-            .into_data()
-            .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+
+        let body = if method == hyper::Method::POST {
+            req
+                .into_body()
+                .frame()
+                .await
+                .context("unable to extract frame")??
+                .into_data()
+                .map_err(|e| anyhow::anyhow!("{:?}", e))?
+        }else {
+            Bytes::new()
+        };
 
         Ok(Self {
             url,

@@ -3,7 +3,8 @@ use mimalloc::MiMalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-fn main() -> anyhow::Result<()> {
-    cli::runner::run()?; // TODO improve error handling
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    cli::runner::run().await?; // TODO improve error handling
     Ok(())
 }

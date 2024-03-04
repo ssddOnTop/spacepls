@@ -2,7 +2,7 @@ pub use config::*;
 pub use server::*;
 pub use upstream::*;
 mod config;
-mod reader;
+pub mod reader;
 mod server;
 mod upstream;
 
