@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter, Write};
+use std::fmt::{Display, Formatter};
 
 /// High-level Types of files that can be uploaded and queried.
 pub enum Types {

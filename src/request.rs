@@ -17,7 +17,9 @@ impl<T: Default + Clone> Default for Request<T> {
     fn default() -> Self {
         Self {
             url: url::Url::parse("http://localhost").unwrap(),
-            ..Default::default()
+            method: Default::default(),
+            headers: Default::default(),
+            body: T::default(),
         }
     }
 }

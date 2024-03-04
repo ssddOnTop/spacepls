@@ -4,6 +4,7 @@ use bytes::Bytes;
 use http_body_util::Full;
 use hyper::{Method, Response};
 use std::sync::Arc;
+use lazy_static::lazy_static;
 
 pub async fn handle_request(
     req: Request<Bytes>,
@@ -54,6 +55,37 @@ async fn handle_get(
     }
 }
 
+lazy_static! {
+    static ref PAGE_404: String = {
+        let html = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),"/html/404.html"));
+        let routes = serde_json::json!({
+            "available_routes": ["home", "query"],
+            "home": "It contains Homepage",
+            "query": "You can query files here",
+        });
+        let routes = routes.to_string();
+        let html = html.replace("SOME_UNIQUE_STRING_TO_BE_REPLACED", routes.as_str());
+        html
+    };
+}
+
 fn not_found() -> Result<Response<Full<Bytes>>> {
-    todo!()
+    let response = Response::builder()
+            .status(404)
+            .header("Content-Type", "text/html")
+            .body(Full::new(Bytes::from(PAGE_404.as_str())))?;
+        Ok(response)
+}
+
+#[cfg(test)]
+mod test {
+    use anyhow::Result;
+    use crate::http::request_handler::PAGE_404;
+
+    #[tokio::test]
+    async fn contains_all_routes() -> Result<()> {
+       assert!(PAGE_404.as_str().contains("home"));
+       assert!(PAGE_404.as_str().contains("query"));
+        Ok(())
+    }
 }

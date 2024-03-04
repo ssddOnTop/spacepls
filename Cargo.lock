@@ -568,6 +568,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "const-str"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aca749d3d3f5b87a0d6100509879f9cf486ab510803a4a4e1001da1ff61c2bd6"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2262,14 +2268,17 @@ dependencies = [
  "async-trait",
  "base64 0.22.0",
  "bytes",
+ "const-str",
  "derive_setters",
  "futures-util",
  "http-body-util",
  "hyper 1.2.0",
+ "lazy_static",
  "reqwest",
  "schemars",
  "serde",
  "serde_json",
+ "tokio",
  "url",
 ]
 
