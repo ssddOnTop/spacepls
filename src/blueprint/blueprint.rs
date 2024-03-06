@@ -17,11 +17,11 @@ impl TryFrom<&Config> for Blueprint {
     fn try_from(config: &Config) -> Result<Self, Self::Error> {
         let server = Server::try_from(config)?;
         let upstream = Upstream::try_from(config)?;
-        let dir_path = config
-            .dir_path
-            .clone()
-            .context("No dir path found in config, use config reader to read config instead.")?;
-        let password = config.password.clone().context(
+        let dir_path =
+            config.extensions.dir_path.clone().context(
+                "No dir path found in config, use config reader to read config instead.",
+            )?;
+        let password = config.extensions.password.clone().context(
             "No password for the files provided. Use config reader to read config instead.",
         )?;
         Ok(Self {

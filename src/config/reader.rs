@@ -55,10 +55,10 @@ impl ConfigReader {
         })
     }
     async fn resolve(mut config: Config, parent_dir: Option<&Path>) -> Config {
-        let dir = config.dir_path.unwrap_or("spacepls".to_string());
+        let dir = config.extensions.dir_path.unwrap_or("spacepls".to_string());
         let dir = Self::resolve_path(&dir, parent_dir);
-        config.dir_path = Some(dir);
-        config.password = Some("$Xme-Ef9r[@EsqF".to_string()); // randomly generated password
+        config.extensions.dir_path = Some(dir);
+        config.extensions.password = Some("$Xme-Ef9r[@EsqF".to_string()); // randomly generated password
 
         config
     }

@@ -9,6 +9,8 @@
         "port": 19194,
         "workers": 2
     },
-    "dir_path": ".",
-    "password": "$Xme-Ef9r[@EsqF"
+    "extensions": {
+        "dir_path": ".",
+        "password": "$Xme-Ef9r[@EsqF"
+    }
 }
