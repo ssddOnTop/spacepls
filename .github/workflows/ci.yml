@@ -8,35 +8,25 @@ on:
 
 jobs:
     test:
+        name: Run Tests
         runs-on: ubuntu-latest
-
         steps:
-            - uses: actions/checkout@v2
-            - name: Set up Rust
-              uses: actions-rs/toolchain@v1
-              with:
-                  toolchain: stable
-                  override: true
+            - uses: actions/checkout@v4
+            - uses: taiki-e/install-action@cargo-llvm-cov
 
-            - name: Build
-              uses: actions-rs/cargo@v1
-              with:
-                  command: build
-                  args: --verbose
+            - name: Install Stable Toolchain
+              uses: actions-rust-lang/setup-rust-toolchain@v1
 
-            - name: Run tests
-              uses: actions-rs/cargo@v1
-              with:
-                  command: test
-                  args: --verbose
+            - name: Run Cargo Test
+              run: cargo llvm-cov --all-features --lcov --output-path lcov.info
 
-            - name: Generate Code Coverage
-              uses: actions-rs/grcov@v0.1
+            - name: Upload Coverage to Codecov
+              uses: Wandalen/wretry.action@v1
               with:
-                  token: ${{ secrets.CODECOV_TOKEN }}
-
-            - name: Upload coverage to Codecov
-              uses: codecov/codecov-action@v2
-              with:
-                  token: ${{ secrets.CODECOV_TOKEN }}
-                  fail_ci_if_error: true
+                  action: codecov/codecov-action@v4
+                  attempt_limit: 3
+                  attempt_delay: 10000
+                  with: |
+                      token: ${{ secrets.CODECOV_TOKEN }}
+                      files: lcov.info
+                      fail_ci_if_error: true
