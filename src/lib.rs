@@ -22,11 +22,17 @@ pub trait HttpIO: Sync + Send + 'static {
     async fn execute(
         &self,
         request: reqwest::Request,
-    ) -> anyhow::Result<response::Response<bytes::Bytes>>;
+        key: String,
+    ) -> anyhow::Result<Response<bytes::Bytes>>;
 }
 
 #[async_trait::async_trait]
 pub trait FileIO: Send + Sync {
-    async fn write<'a>(&'a self, path: &'a str, content: &'a [u8]) -> anyhow::Result<()>;
-    async fn read<'a>(&'a self, path: &'a str) -> anyhow::Result<String>;
+    async fn write<'a>(
+        &'a self,
+        path: &'a str,
+        content: &'a [u8],
+        key: String,
+    ) -> anyhow::Result<()>;
+    async fn read<'a>(&'a self, path: &'a str, key: String) -> anyhow::Result<String>;
 }
