@@ -1,6 +1,22 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "definitions": {
+        "Extensions": {
+            "description": "Used to store crucial information like password and dir path",
+            "properties": {
+                "dir_path": {
+                    "default": null,
+                    "description": "The directory path to store files.",
+                    "type": ["string", "null"]
+                },
+                "password": {
+                    "default": null,
+                    "description": "Password",
+                    "type": ["string", "null"]
+                }
+            },
+            "type": "object"
+        },
         "Proxy": {
             "properties": {
                 "url": {
@@ -113,15 +129,13 @@
         }
     },
     "properties": {
-        "dir_path": {
-            "default": null,
-            "description": "The directory path to store files.",
-            "type": ["string", "null"]
-        },
-        "password": {
-            "default": null,
-            "description": "Password",
-            "type": ["string", "null"]
+        "extensions": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/Extensions"
+                }
+            ],
+            "description": "Used to store crucial information like password and dir path"
         },
         "server": {
             "allOf": [
@@ -142,6 +156,7 @@
             "description": "Dictates how SpacePls should handle upstream requests/responses. Tuning upstream can improve performance and reliability for connections."
         }
     },
+    "required": ["extensions"],
     "title": "Config",
     "type": "object"
 }

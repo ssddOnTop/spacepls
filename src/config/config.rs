@@ -1,3 +1,4 @@
+use crate::config::extensions::Extensions;
 use crate::config::server::Server;
 use crate::config::Upstream;
 use derive_setters::Setters;
@@ -19,12 +20,9 @@ pub struct Config {
     #[serde(default)]
     pub upstream: Upstream,
 
-    /// The directory path to store files.
-    #[serde(default)]
-    pub dir_path: Option<String>,
-    /// Password
-    #[serde(default)]
-    pub password: Option<String>,
+    /// Used to store crucial information like
+    /// password and dir path
+    pub extensions: Extensions,
 }
 
 impl Config {
@@ -32,14 +30,12 @@ impl Config {
     pub fn merge_right(self, other: &Self) -> Self {
         let server = self.server.merge_right(other.server.clone());
         let upstream = self.upstream.merge_right(other.upstream.clone());
-        let dir_path = other.clone().dir_path.or(self.dir_path);
-        let password = other.clone().password.or(self.password);
+        let extensions = self.extensions.merge_right(other.extensions.clone());
 
         Self {
             server,
             upstream,
-            dir_path,
-            password,
+            extensions,
         }
     }
 
