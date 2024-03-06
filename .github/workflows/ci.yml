@@ -1,379 +1,42 @@
-name: Build
+name: Rust
 
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches: [main]
-        types: [opened, reopened, synchronize]
-permissions:
-    contents: read
-
-concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    # TODO: cancel in progress is not ok for a release since it can be cancelled in a middle of updates
-    # and we can end up with partial release.
-    # but for pull-requests cancelling previously running jobs could be beneficial
-    # cancel-in-progress: true
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-    check_if_build:
-        name: Check if Build
-        runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1000
-            - id: check
-              run: |
-                  chmod +x .github/scripts/check_if_build.sh
-                  .github/scripts/check_if_build.sh
-        outputs:
-            check_if_build: ${{ steps.check.outputs.check_if_build }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
 
-    test:
-        name: Run Tests
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose
 
-            - name: Install Stable Toolchain
-              uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose
 
-            - name: Run Cargo Test
-              run: cargo llvm-cov --all-features --lcov --output-path lcov.info
+      - name: Generate Code Coverage
+        uses: actions-rs/grcov@v0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-            - name: Upload Coverage to Codecov
-              uses: Wandalen/wretry.action@v1
-              with:
-                  action: codecov/codecov-action@v4
-                  attempt_limit: 3
-                  attempt_delay: 10000
-                  with: |
-                      token: ${{ secrets.CODECOV_TOKEN }}
-                      files: lcov.info
-                      fail_ci_if_error: true
-
-    draft_release:
-        name: Draft Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-            pull-requests: write
-        steps:
-            - name: Checkout Current Branch (Fast)
-              uses: actions/checkout@v4
-
-            - id: create_release
-              uses: release-drafter/release-drafter@v6
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  config-name: release-drafter.yml
-
-            - name: Set Output for Later Jobs
-              id: set_output
-              run: |
-                  echo "create_release_name=${{ steps.create_release.outputs.name }}" >> $GITHUB_OUTPUT
-                  echo "create_release_id=${{ steps.create_release.outputs.id }}" >> $GITHUB_OUTPUT
-        outputs:
-            create_release_name: ${{ steps.set_output.outputs.create_release_name }}
-            create_release_id: ${{ steps.set_output.outputs.create_release_id }}
-
-    # TODO: move to separate file to separate responsibilities
-    release:
-        name: Release
-        needs: [test, draft_release, check_if_build, test_cf]
-        # TODO: put a condition to separate job that other will depend on to remove duplication?
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (needs.check_if_build.outputs.check_if_build == 'true')
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                build:
-                    [
-                        linux-x64-gnu,
-                        linux-x64-musl,
-                        linux-arm64-gnu,
-                        linux-arm64-musl,
-                        linux-ia32-gnu,
-                        darwin-arm64,
-                        darwin-x64,
-                        win32-x64-msvc,
-                        win32-x64-gnu,
-                        win32-arm64-msvc,
-                        win32-ia32-gnu,
-                    ]
-                include:
-                    - build: linux-x64-gnu
-                      os: ubuntu-latest
-                      rust: stable
-                      target: x86_64-unknown-linux-gnu
-                      libc: glibc
-                      cross: false
-
-                    - build: linux-x64-musl
-                      os: ubuntu-latest
-                      rust: stable
-                      target: x86_64-unknown-linux-musl
-                      features: --no-default-features --features cli
-                      libc: musl
-                      cross: true
-
-                    - build: linux-arm64-gnu
-                      os: ubuntu-latest
-                      rust: stable
-                      target: aarch64-unknown-linux-gnu
-                      libc: glibc
-                      cross: true
-
-                    - build: linux-arm64-musl
-                      os: ubuntu-latest
-                      rust: stable
-                      target: aarch64-unknown-linux-musl
-                      features: --no-default-features --features cli
-                      libc: musl
-                      cross: true
-
-                    - build: linux-ia32-gnu
-                      os: ubuntu-latest
-                      rust: stable
-                      target: i686-unknown-linux-gnu
-                      features: --no-default-features --features cli
-                      libc: glibc
-                      cross: true
-
-                    - build: darwin-arm64
-                      os: macos-latest
-                      rust: stable
-                      target: aarch64-apple-darwin
-
-                    - build: darwin-x64
-                      os: macos-latest
-                      rust: stable
-                      target: x86_64-apple-darwin
-                      cross: false
-
-                    - build: win32-x64-msvc
-                      os: windows-latest
-                      rust: stable
-                      target: x86_64-pc-windows-msvc
-                      libc: msvc
-                      ext: ".exe"
-
-                    - build: win32-x64-gnu
-                      os: windows-latest
-                      rust: stable
-                      target: x86_64-pc-windows-gnu
-                      features: --no-default-features --features cli
-                      libc: glibc
-                      ext: ".exe"
-
-                    - build: win32-arm64-msvc
-                      os: windows-latest
-                      rust: stable
-                      target: aarch64-pc-windows-msvc
-                      features: --no-default-features --features cli
-                      libc: msvc
-                      ext: ".exe"
-
-                    - build: win32-ia32-gnu
-                      os: ubuntu-latest
-                      rust: stable
-                      target: i686-pc-windows-gnu
-                      features: --no-default-features --features cli
-                      cross: true
-                      libc: glibc
-                      ext: ".exe"
-        permissions:
-            contents: write
-            pull-requests: write
-        env:
-            GITHUB_TOKEN: ${{secrets.GITHUBTOKEN}}
-            APP_VERSION: ${{ needs.draft_release.outputs.create_release_name }}
-
-        steps:
-            - name: Checkout Current Branch (Fast)
-              uses: actions/checkout@v4
-
-            - name: Install Correct Toolchain
-              uses: actions-rust-lang/setup-rust-toolchain@v1
-              with:
-                  target: ${{ matrix.target }}
-
-            - name: Build
-              env:
-                  APP_VERSION: ${{ needs.draft_release.outputs.create_release_name}}
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-              uses: ClementTsang/cargo-action@v0.0.6
-              with:
-                  use-cross: ${{ matrix.cross }}
-                  command: build
-                  args: ${{matrix.features}} --release --target ${{ matrix.target }}
-
-            - name: Install Node.js
-              if: (startsWith(github.event.head_commit.message, 'feat') || startsWith(github.event.head_commit.message, 'fix')) && (github.event_name == 'push' && github.ref == 'refs/heads/main')
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20.11.0
-                  registry-url: https://registry.npmjs.org
-
-            - name: Install dependencies
-              if: (startsWith(github.event.head_commit.message, 'feat') || startsWith(github.event.head_commit.message, 'fix')) && (github.event_name == 'push' && github.ref == 'refs/heads/main')
-              run: |
-                  cd npm
-                  npm install
-
-            - name: Run generate.js script
-              if: (startsWith(github.event.head_commit.message, 'feat') || startsWith(github.event.head_commit.message, 'fix')) && (github.event_name == 'push' && github.ref == 'refs/heads/main')
-              run: |
-                  cd npm
-                  npm run gen -- --target ${{matrix.target}} --version ${{ env.APP_VERSION }} --build ${{matrix.build}} --ext ${{ matrix.ext || '' }} --libc ${{ matrix.libc }}
-            - name: Setup .npmrc file to publish to npm
-              run: echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" > ~/.npmrc
-
-            - name: NPM Publish
-              if: (startsWith(github.event.head_commit.message, 'feat') || startsWith(github.event.head_commit.message, 'fix')) && (github.event_name == 'push' && github.ref == 'refs/heads/main')
-              uses: JS-DevTools/npm-publish@v3
-              with:
-                  token: ${{ secrets.NPM_TOKEN }}
-                  package: npm/@tailcallhq/core-${{matrix.build}}
-                  access: public
-
-            - name: Rename Binary with Target Name
-              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-              run: |
-                  pwd
-                  cp target/${{ matrix.target }}/release/tailcall${{ matrix.ext }} target/${{ matrix.target }}/release/tailcall-${{ matrix.target }}${{ matrix.ext }}
-
-            - name: Upload ${{ matrix.target }} Binary
-              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-              uses: xresloader/upload-to-github-release@v1
-              with:
-                  release_id: ${{ needs.draft_release.outputs.create_release_id }}
-                  file: target/${{ matrix.target }}/release/tailcall-${{ matrix.target }}${{ matrix.ext }}
-                  overwrite: true
-    release_lambda:
-        name: Release (AWS Lambda)
-        needs: [test, draft_release, check_if_build, test_cf]
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (needs.check_if_build.outputs.check_if_build == 'true')
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-            pull-requests: write
-        env:
-            GITHUB_TOKEN: ${{secrets.GITHUBTOKEN}}
-            APP_VERSION: ${{ needs.draft_release.outputs.create_release_name }}
-
-        steps:
-            - name: Checkout Current Branch (Fast)
-              uses: actions/checkout@v4
-
-            - name: Install Correct Toolchain
-              uses: actions-rust-lang/setup-rust-toolchain@v1
-
-            - name: Install Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: "3.12"
-
-            - name: Install cargo-lambda
-              run: pip install cargo-lambda
-
-            - name: Build
-              env:
-                  APP_VERSION: ${{ needs.draft_release.outputs.create_release_name }}
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-              run: cargo lambda build -p aws-lambda --release
-
-            - name: Rename Binary with Target Name
-              run: |
-                  pwd
-                  cp target/lambda/aws-lambda/bootstrap target/lambda/aws-lambda/tailcall-aws-lambda-bootstrap
-
-            - name: Upload AWS Lambda Bootstrap Binary
-              uses: xresloader/upload-to-github-release@v1
-              with:
-                  release_id: ${{ needs.draft_release.outputs.create_release_id }}
-                  file: target/lambda/aws-lambda/tailcall-aws-lambda-bootstrap
-                  overwrite: true
-    semantic_release:
-        name: Semantic Release
-        if: (startsWith(github.event.head_commit.message, 'feat') || startsWith(github.event.head_commit.message, 'fix')) && (github.event_name == 'push' && github.ref == 'refs/heads/main')
-        needs: [draft_release, release, release_lambda]
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-            pull-requests: write
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            APP_VERSION: ${{needs.draft_release.outputs.create_release_name }}
-        steps:
-            - name: Publish Release
-              uses: test-room-7/action-publish-release-drafts@v0
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  tag-name: ${{needs.draft_release.outputs.create_release_name }}
-
-    build-and-push-image:
-        env:
-            REGISTRY: ghcr.io
-            IMAGE_NAME: ${{ github.repository }}/tc-server
-        needs: [draft_release, release]
-        if: (startsWith(github.event.head_commit.message, 'feat') || startsWith(github.event.head_commit.message, 'fix')) && (github.event_name == 'push' && github.ref == 'refs/heads/main')
-        runs-on: ubuntu-latest
-        # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
-        permissions:
-            contents: read
-            packages: write
-            #
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-            # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
-            - name: Log in to the Container Registry
-              uses: docker/login-action@v3
-              with:
-                  registry: ${{ env.REGISTRY }}
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUBTOKEN }}
-            # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
-            - name: Extract Metadata (tags, labels) for Docker
-              id: meta
-              uses: docker/metadata-action@v5
-              with:
-                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
-            # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see "[Usage](https://github.com/docker/build-push-action#usage)" in the README of the `docker/build-push-action` repository.
-            # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
-            - name: Build and Push the Docker Image
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
-
-    homebrew-release:
-        name: Homebrew Release
-        needs: [draft_release, release, semantic_release]
-        if: (startsWith(github.event.head_commit.message, 'feat') || startsWith(github.event.head_commit.message, 'fix')) && (github.event_name == 'push' && github.ref == 'refs/heads/main')
-        permissions:
-            contents: write
-            pull-requests: write
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  repository: tailcallhq/homebrew-tailcall
-                  ref: main
-                  token: ${{ secrets.HOMEBREW_ACCESS }}
-
-            - name: Update Homebrew Formula
-              run: ./update-formula.sh ${{needs.draft_release.outputs.create_release_name }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
