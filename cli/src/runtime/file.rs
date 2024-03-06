@@ -12,14 +12,21 @@ impl NativeFileIO {
 
 #[async_trait::async_trait]
 impl FileIO for NativeFileIO {
-    async fn write<'a>(&'a self, path: &'a str, content: &'a [u8]) -> anyhow::Result<()> {
+    async fn write<'a>(
+        &'a self,
+        path: &'a str,
+        content: &'a [u8],
+        _: String,
+    ) -> anyhow::Result<()> {
+        // TODO add AES support
         let mut file = tokio::fs::File::create(path).await?;
         file.write_all(content).await?;
         log::info!("File write: {} ... ok", path);
         Ok(())
     }
 
-    async fn read<'a>(&'a self, path: &'a str) -> anyhow::Result<String> {
+    async fn read<'a>(&'a self, path: &'a str, _: String) -> anyhow::Result<String> {
+        // TODO add AES support
         let mut file = tokio::fs::File::open(path).await?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer).await?;
@@ -47,13 +54,13 @@ mod tests {
         // Test writing to the file
         let content = b"Hello, world!";
         file_io
-            .write(tmp_path, content)
+            .write(tmp_path, content, String::new())
             .await
             .expect("Failed to write to temp file");
 
         // Test reading from the file
         let read_content = file_io
-            .read(tmp_path)
+            .read(tmp_path, String::new())
             .await
             .expect("Failed to read from temp file");
 
@@ -65,7 +72,9 @@ mod tests {
     async fn test_write_error() {
         // Attempt to write to an invalid path
         let file_io = NativeFileIO::init();
-        let result = file_io.write("/invalid/path/to/file.txt", b"content").await;
+        let result = file_io
+            .write("/invalid/path/to/file.txt", b"content", String::new())
+            .await;
 
         // Verify that an error is returned
         assert!(result.is_err());
@@ -75,7 +84,7 @@ mod tests {
     async fn test_read_error() {
         // Attempt to read from a non-existent file
         let file_io = NativeFileIO::init();
-        let result = file_io.read("/non/existent/file.txt").await;
+        let result = file_io.read("/non/existent/file.txt", String::new()).await;
 
         // Verify that an error is returned
         assert!(result.is_err());

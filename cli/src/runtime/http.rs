@@ -60,7 +60,8 @@ impl NativeHttp {
 
 #[async_trait::async_trait]
 impl HttpIO for NativeHttp {
-    async fn execute(&self, request: reqwest::Request) -> Result<Response<Bytes>> {
+    async fn execute(&self, request: reqwest::Request, _: String) -> Result<Response<Bytes>> {
+        // TODO add AES support
         log::info!(
             "{} {} {:?}",
             request.method(),
@@ -100,7 +101,7 @@ mod tests {
         let request = reqwest::Request::new(Method::GET, request_url.parse().unwrap());
 
         // Execute the request
-        let result = native_http.execute(request).await;
+        let result = native_http.execute(request, String::new()).await;
 
         // Assert the response is as expected
         assert!(result.is_ok());

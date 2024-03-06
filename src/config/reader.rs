@@ -39,14 +39,20 @@ impl ConfigReader {
             let response = self
                 .runtime
                 .http
-                .execute(reqwest::Request::new(reqwest::Method::GET, url))
+                .execute(
+                    reqwest::Request::new(reqwest::Method::GET, url),
+                    String::new(),
+                ) // reading config should not require key
                 .await?;
 
             String::from_utf8(response.body.to_vec())?
         } else {
             // Is a file path
 
-            self.runtime.file.read(&file.to_string()).await?
+            self.runtime
+                .file
+                .read(&file.to_string(), String::new())
+                .await? // reading config should not require key
         };
 
         Ok(FileRead {
