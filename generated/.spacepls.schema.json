@@ -8,11 +8,6 @@
                     "default": null,
                     "description": "The directory path to store files.",
                     "type": ["string", "null"]
-                },
-                "password": {
-                    "default": null,
-                    "description": "Password",
-                    "type": ["string", "null"]
                 }
             },
             "type": "object"
