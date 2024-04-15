@@ -9,7 +9,6 @@ pub struct Blueprint {
     pub server: Server,
     pub upstream: Upstream,
     pub dir_path: String,
-    pub password: String,
 }
 
 impl TryFrom<&Config> for Blueprint {
@@ -21,14 +20,10 @@ impl TryFrom<&Config> for Blueprint {
             config.extensions.dir_path.clone().context(
                 "No dir path found in config, use config reader to read config instead.",
             )?;
-        let password = config.extensions.password.clone().context(
-            "No password for the files provided. Use config reader to read config instead.",
-        )?;
         Ok(Self {
             server,
             upstream,
             dir_path,
-            password,
         })
     }
 }
