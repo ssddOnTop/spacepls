@@ -1,3 +1,4 @@
+use crate::http::request::Request;
 use crate::AppContext;
 use anyhow::Result;
 use bytes::Bytes;
@@ -7,9 +8,11 @@ use lazy_static::lazy_static;
 use std::sync::Arc;
 
 pub async fn handle_request(
-    req: hyper::Request<hyper::body::Incoming>,
+    req: Request<hyper::body::Incoming>,
     app_ctx: Arc<AppContext>,
 ) -> Result<Response<Full<Bytes>>> {
+    let req = req.into_bytes().await?;
+
     match *req.method() {
         Method::POST => handle_post(req, app_ctx).await,
         Method::GET => handle_get(req, app_ctx).await,
@@ -19,7 +22,7 @@ pub async fn handle_request(
 
 /// Post requests should return a json response
 async fn handle_post(
-    req: hyper::Request<hyper::body::Incoming>,
+    req: Request<Bytes>,
     _app_ctx: Arc<AppContext>,
 ) -> Result<Response<Full<Bytes>>> {
     let path = req.uri().path();
@@ -36,7 +39,7 @@ async fn handle_post(
 
 /// Get requests should return a html response
 async fn handle_get(
-    req: hyper::Request<hyper::body::Incoming>,
+    req: Request<Bytes>,
     _app_ctx: Arc<AppContext>,
 ) -> Result<Response<Full<Bytes>>> {
     let path = req.uri().path();

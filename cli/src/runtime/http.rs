@@ -106,7 +106,7 @@ mod tests {
         // Assert the response is as expected
         assert!(result.is_ok());
         let response = result.unwrap();
-        assert_eq!(response.status, reqwest::StatusCode::OK);
+        assert_eq!(response.status, hyper::StatusCode::OK);
         assert_eq!(response.body, Bytes::from("Alo"));
 
         header_serv.assert();
